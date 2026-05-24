@@ -40,12 +40,19 @@ export default function MainLayout() {
 
   const handleLogout = async () => { await logout(); navigate('/login') }
 
+  // Safely get role name (handle both string and object formats)
+  const roleName = typeof user?.role === 'object' ? user?.role?.name : user?.role
+
+  // DEBUG: Remove this after fixing
+  console.log('[MainLayout] user:', user, '| roleName:', roleName)
+
   const visibleItems = NAV_ITEMS.filter(item => {
-    // Divider items always visible for their intended roles
-    if (item.divider) return hasAnyRole && hasAnyRole(item.roles)
-    // Regular nav items 
-    return hasAnyRole && hasAnyRole(item.roles ?? ['owner','admin','cashier'])
+    const allowedRoles = item.roles ?? ['owner', 'admin', 'cashier']
+    // If no role detected yet, hide nothing (show all) — fallback graceful
+    if (!roleName) return false
+    return allowedRoles.includes(roleName)
   })
+
 
   const SidebarContent = () => (
     <div className={`h-screen flex flex-col overflow-hidden transition-all duration-300 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700/50 ${collapsed ? 'w-[70px]' : 'w-64'}`}>

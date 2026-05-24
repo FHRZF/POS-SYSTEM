@@ -60,10 +60,22 @@ class AuthController extends Controller
  
     public function me(Request $request)
     {
+        $user = $request->user()->load('role', 'branch');
         return response()->json([
-            'user' => $request->user()->load('role', 'branch'),
+            'user' => [
+                'id'           => $user->id,
+                'name'         => $user->name,
+                'email'        => $user->email,
+                'phone'        => $user->phone,
+                'avatar'       => $user->avatar,
+                'role'         => $user->role,
+                'role_display' => $user->role ? $user->role->display_name : null,
+                'branch_id'    => $user->branch_id,
+                'branch'       => $user->branch,
+            ],
         ]);
     }
+
  
     public function changePassword(Request $request)
     {
