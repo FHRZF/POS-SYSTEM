@@ -6,16 +6,12 @@ import {
   TrendingUp, ShoppingCart, Package, DollarSign,
   AlertTriangle, ArrowUpRight, ArrowDownRight, Store
 } from 'lucide-react'
-import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-  LineElement, PointElement, Title, Tooltip, Legend, Filler
-} from 'chart.js'
-import { Bar, Line } from 'react-chartjs-2'
+import ChartLazy from '../components/Chart/BarChartLazy'
 import api from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../utils/formatters'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler)
+// Chart libraries are lazy-loaded by ChartLazy to reduce initial bundle size
 
 const chartOptions = {
   responsive: true,
@@ -137,7 +133,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
           Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, {user?.name?.split(' ')[0]} 👋
         </h1>
         <p className="text-slate-400 text-sm mt-1">
@@ -186,8 +182,8 @@ export default function Dashboard() {
               <p className="text-slate-400 text-sm">Last 30 days</p>
             </div>
           </div>
-          <div className="h-48">
-            <Line data={dailyChartData} options={chartOptions} />
+            <div className="h-48">
+            <ChartLazy chart="Line" data={dailyChartData} options={chartOptions} />
           </div>
         </div>
 
@@ -199,7 +195,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="h-48">
-            <Bar data={monthlyChartData} options={chartOptions} />
+            <ChartLazy chart="Bar" data={monthlyChartData} options={chartOptions} />
           </div>
         </div>
       </div>

@@ -139,7 +139,7 @@ export default function Stocks() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <SearchInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product, SKU, barcode..." className="max-w-xs flex-1 sm:flex-none" />
+        <SearchInput aria-label="Search stocks" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product, SKU, barcode..." className="max-w-xs flex-1 sm:flex-none" />
 
         {branches.length > 0 && (
           <Select value={branchFilter} onChange={e => setBranchFilter(e.target.value)} className="w-auto">
@@ -149,6 +149,8 @@ export default function Stocks() {
         )}
 
         <button
+          type="button"
+          aria-pressed={lowOnly}
           onClick={() => setLowOnly(!lowOnly)}
           className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
             lowOnly
@@ -159,14 +161,44 @@ export default function Stocks() {
           <Filter size={14}/>
           Low Stock Only
           {lowStockCount > 0 && (
-            <span className="bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" aria-hidden="true">
               {lowStockCount}
             </span>
           )}
         </button>
       </div>
 
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No stock records found" />
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading stocks...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No stock records found</div>
+        ) : (
+          filtered.map(s => (
+            <div key={s.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-slate-900 dark:text-white">{s.variant?.product?.name}</div>
+                  <div className="text-xs text-slate-400">{s.variant?.variant_name}</div>
+                  {s.variant?.sku && <div className="text-xs font-mono text-slate-300 dark:text-slate-600">{s.variant.sku}</div>}
+                  <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">{s.branch?.name}</div>
+                </div>
+                <div className="text-right flex flex-col items-end gap-2">
+                  <div className={`text-lg font-bold ${s.quantity === 0 ? 'text-red-500' : s.quantity <= s.low_stock_threshold ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>{formatNumber(s.quantity)}</div>
+                  <div>
+                    <Btn type="button" variant="secondary" size="sm" onClick={() => openAdjust(s)} aria-label={`Adjust ${s.variant?.variant_name}`}>Adjust</Btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No stock records found" />
+      </div>
 
       {/* Adjust Modal */}
       <Modal open={showAdjust} onClose={() => setShowAdjust(false)} title="Adjust Stock" size="sm">
@@ -185,27 +217,30 @@ export default function Stocks() {
             <FormField label="Adjustment Type">
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'add',      label: '+ Add',  icon: Plus  },
-                  { id: 'subtract', label: '- Subtract', icon: Minus },
-                  { id: 'set',      label: '= Set',  icon: Settings2 },
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setAdjustForm(f => ({ ...f, type: t.id }))}
-                    className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-sm font-medium transition-all ${
-                      adjustForm.type === t.id
-                        ? 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-400'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                    }`}
-                  >
-                    <t.icon size={13}/> {t.label}
-                  </button>
-                ))}
+                    { id: 'add',      label: '+ Add',  icon: Plus  },
+                    { id: 'subtract', label: '- Subtract', icon: Minus },
+                    { id: 'set',      label: '= Set',  icon: Settings2 },
+                  ].map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      aria-pressed={adjustForm.type === t.id}
+                      onClick={() => setAdjustForm(f => ({ ...f, type: t.id }))}
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-sm font-medium transition-all ${
+                        adjustForm.type === t.id
+                          ? 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-400'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                      }`}
+                    >
+                      <t.icon size={13}/> {t.label}
+                    </button>
+                  ))}
               </div>
             </FormField>
 
             <FormField label="Quantity" required>
               <Input
+                aria-label="Adjustment quantity"
                 type="number"
                 min="0"
                 value={adjustForm.quantity}
@@ -217,6 +252,7 @@ export default function Stocks() {
 
             <FormField label="Reason" required>
               <Input
+                aria-label="Adjustment reason"
                 value={adjustForm.reason}
                 onChange={e => setAdjustForm(f => ({ ...f, reason: e.target.value }))}
                 placeholder="e.g. Manual count, Damage, Return..."
@@ -224,8 +260,8 @@ export default function Stocks() {
             </FormField>
 
             <div className="flex gap-3">
-              <Btn onClick={handleAdjust} loading={saving} className="flex-1 justify-center">Adjust Stock</Btn>
-              <Btn variant="secondary" onClick={() => setShowAdjust(false)}>Cancel</Btn>
+              <Btn type="button" onClick={handleAdjust} loading={saving} className="flex-1 justify-center">Adjust Stock</Btn>
+              <Btn type="button" variant="secondary" onClick={() => setShowAdjust(false)}>Cancel</Btn>
             </div>
           </div>
         )}

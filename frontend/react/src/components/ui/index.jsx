@@ -2,6 +2,7 @@
 // Semua shared UI components dengan dark/light theme support
 
 import { X, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 
 // ─── Page Header ────────────────────────────────────────────
 export function PageHeader({ title, subtitle, action }) {
@@ -29,9 +30,12 @@ export function DataTable({ columns, data, loading, emptyMessage = 'No data foun
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50">
+            <tr className="border-b border-slate-100 dark:border-slate-700/50">
               {columns.map((col, i) => (
-                <th key={i} className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-5 py-3.5">
+                <th
+                  key={i}
+                  className="sticky top-0 z-10 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50"
+                >
                   {col.header}
                 </th>
               ))}
@@ -63,14 +67,23 @@ export function DataTable({ columns, data, loading, emptyMessage = 'No data foun
 
 // ─── Modal ───────────────────────────────────────────────────
 export function Modal({ open, onClose, title, children, size = 'md' }) {
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = prev }
+    }
+    return undefined
+  }, [open])
+
   if (!open) return null
   const sizes = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' }
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title || 'Dialog'}>
       <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl w-full ${sizes[size]} shadow-2xl max-h-[90vh] flex flex-col`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
           <h3 className="text-slate-900 dark:text-white font-semibold text-base">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
             <X size={18} />
           </button>
         </div>
@@ -145,8 +158,9 @@ export function Btn({ children, variant = 'primary', size = 'md', loading = fals
   return (
     <button
       {...props}
+      type={props.type || 'button'}
       disabled={props.disabled || loading}
-      className={`font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${variants[variant]} ${sizes[size]} ${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900`}
     >
       {loading && <Loader2 size={14} className="animate-spin" />}
       {children}
@@ -174,7 +188,7 @@ export function Badge({ children, color = 'slate' }) {
 // ─── Toast ───────────────────────────────────────────────────
 export function Toast({ toasts }) {
   return (
-    <div className="fixed bottom-5 right-5 z-[200] space-y-2 pointer-events-none">
+    <div className="fixed bottom-5 right-5 z-[200] space-y-2 pointer-events-none" aria-live="polite" role="status">
       {toasts.map(toast => (
         <div key={toast.id} className={`
           flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-sm font-medium pointer-events-auto
@@ -183,7 +197,7 @@ export function Toast({ toasts }) {
           ${toast.type === 'error'   ? 'bg-red-50 dark:bg-red-500/20 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400' : ''}
           ${toast.type === 'info'    ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-400' : ''}
           ${toast.type === 'warning' ? 'bg-amber-50 dark:bg-amber-500/20 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400' : ''}
-        `}>
+        `} role="status" aria-atomic="true">
           {toast.message}
         </div>
       ))}

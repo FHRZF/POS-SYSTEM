@@ -1,11 +1,7 @@
 // src/pages/Reports.jsx
 import { useState, useEffect, useCallback } from 'react'
 import { BarChart3, TrendingUp, ShoppingCart, CreditCard, QrCode, Banknote, Filter } from 'lucide-react'
-import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement,
-  LineElement, PointElement, Tooltip, Legend, Filler
-} from 'chart.js'
-import { Bar } from 'react-chartjs-2'
+import BarChartLazy from '../components/Chart/BarChartLazy'
 import api from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -13,7 +9,7 @@ import {
 } from '../components/ui'
 import { formatCurrency, formatDate, formatDateTime } from '../utils/formatters'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend, Filler)
+// Chart.js will be registered dynamically by the lazy loader when needed
 
 export default function Reports() {
   const { user } = useAuth()
@@ -164,7 +160,7 @@ export default function Reports() {
               <h3 className="text-slate-900 dark:text-white font-semibold mb-4">Daily Revenue Breakdown</h3>
               <div className="h-56">
                 {chartLabels.length > 0
-                  ? <Bar data={chartData} options={chartOptions} />
+                  ? <BarChartLazy data={chartData} options={chartOptions} />
                   : <div className="flex items-center justify-center h-full text-slate-400 text-sm">No data to display</div>
                 }
               </div>

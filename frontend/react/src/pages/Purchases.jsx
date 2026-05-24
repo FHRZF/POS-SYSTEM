@@ -147,10 +147,37 @@ export default function Purchases() {
       <PageHeader
         title="Purchases"
         subtitle="Record stock purchases and restocking"
-        action={<Btn onClick={() => { setForm(EMPTY_FORM); setShowModal(true) }}><Plus size={16}/> New Purchase</Btn>}
+        action={<Btn type="button" onClick={() => { setForm(EMPTY_FORM); setShowModal(true) }} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"><Plus size={16}/> New Purchase</Btn>}
       />
 
-      <DataTable columns={columns} data={purchases} loading={loading} emptyMessage="No purchases recorded yet" />
+      {/* Mobile purchase cards */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading purchases...</div>
+        ) : purchases.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No purchases recorded yet</div>
+        ) : (
+          purchases.map(p => (
+            <div key={p.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-sm font-mono text-slate-700 dark:text-slate-300">{p.purchase_number}</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white">{formatDate(p.purchase_date)}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{p.supplier?.name || 'Direct'} • {p.branch?.name}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white">{formatCurrency(p.total_amount)}</div>
+                  <div className="mt-1"><Badge color={STATUS_COLOR[p.status] || 'slate'}>{p.status}</Badge></div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={purchases} loading={loading} emptyMessage="No purchases recorded yet" />
+      </div>
 
       {/* New Purchase Modal */}
       <Modal open={showModal} onClose={() => setShowModal(false)} title="New Purchase Order" size="xl">
@@ -192,13 +219,14 @@ export default function Purchases() {
                   value={varSearch}
                   onChange={e => setVarSearch(e.target.value)}
                   placeholder="Search product to add..."
+                  aria-label="Search product to add"
                   className="flex-1 text-sm bg-transparent text-slate-900 dark:text-white placeholder-slate-400 outline-none"
                 />
               </div>
               {variants.length > 0 && (
                 <div className="absolute z-20 top-full mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                   {variants.map(v => (
-                    <button key={v.id} onClick={() => selectVariant(form.items.length - 1, v)}
+                    <button key={v.id} type="button" onClick={() => selectVariant(form.items.length - 1, v)}
                       className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                       <div className="text-slate-900 dark:text-white text-sm font-medium">{v.product_name}</div>
                       <div className="text-slate-400 text-xs">{v.variant_name} · {v.sku || 'no SKU'} · Cost: {formatCurrency(v.cost)}</div>
@@ -223,7 +251,7 @@ export default function Purchases() {
                     <Input type="number" min="0" value={item.unit_cost} onChange={e => setItem(i, 'unit_cost', e.target.value)} placeholder="Cost/unit" />
                   </div>
                   <div className="col-span-1 flex justify-end">
-                    <button onClick={() => removeItem(i)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+                    <button type="button" onClick={() => removeItem(i)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" aria-label="Remove item">
                       <Trash2 size={14}/>
                     </button>
                   </div>
@@ -239,8 +267,8 @@ export default function Purchases() {
           </div>
 
           <div className="flex gap-3">
-            <Btn onClick={handleSave} loading={saving} className="flex-1 justify-center">Save Purchase & Update Stock</Btn>
-            <Btn variant="secondary" onClick={() => setShowModal(false)}>Cancel</Btn>
+            <Btn type="button" onClick={handleSave} loading={saving} className="flex-1 justify-center">Save Purchase & Update Stock</Btn>
+            <Btn type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Btn>
           </div>
         </div>
       </Modal>

@@ -1,5 +1,5 @@
 // src/layouts/MainLayout.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -28,7 +28,9 @@ const NAV_ITEMS = [
 export default function MainLayout() {
   const { user, logout, hasAnyRole, loading } = useAuth()
   const { dark, toggle } = useTheme()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('pos_collapsed') === 'true' } catch (e) { return false }
+  })
   const [mobileOpen, setMobileOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -40,16 +42,20 @@ export default function MainLayout() {
 
   const handleLogout = async () => { await logout(); navigate('/login') }
 
+  // Persist collapsed state
+  useEffect(() => {
+    try { localStorage.setItem('pos_collapsed', collapsed ? 'true' : 'false') } catch (e) {}
+  }, [collapsed])
+
   // Safely get role name (handle both string and object formats)
   const roleName = typeof user?.role === 'object' ? user?.role?.name : user?.role
 
-  // DEBUG: Remove this after fixing
-  console.log('[MainLayout] user:', user, '| roleName:', roleName)
-
+  // If roleName is not available yet (e.g. cached user, validating token),
+  // show the sidebar items as a graceful fallback so navbar doesn't disappear on refresh.
   const visibleItems = NAV_ITEMS.filter(item => {
     const allowedRoles = item.roles ?? ['owner', 'admin', 'cashier']
-    // If no role detected yet, hide nothing (show all) — fallback graceful
-    if (!roleName) return false
+    if (!user) return false
+    if (!roleName) return true
     return allowedRoles.includes(roleName)
   })
 

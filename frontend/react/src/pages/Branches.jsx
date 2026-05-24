@@ -118,9 +118,11 @@ export default function Branches() {
       header: 'Actions',
       render: row => (
         <div className="flex items-center gap-2">
-          <Btn variant="secondary" size="sm" onClick={() => openEdit(row)}><Edit size={13} /> Edit</Btn>
+          <Btn type="button" variant="secondary" size="sm" onClick={() => openEdit(row)}><Edit size={13} /> Edit</Btn>
           <button
+            type="button"
             onClick={() => toggleStatus(row)}
+            aria-label={row.is_active ? 'Deactivate' : 'Activate'}
             className={`p-1.5 rounded-lg transition-colors ${row.is_active ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
             title={row.is_active ? 'Deactivate' : 'Activate'}
           >
@@ -160,12 +162,47 @@ export default function Branches() {
       <PageHeader
         title="Branches"
         subtitle="Manage your store branches"
-        action={<Btn onClick={openCreate}><Plus size={16} /> Add Branch</Btn>}
+        action={<Btn type="button" onClick={openCreate} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"><Plus size={16} /> Add Branch</Btn>}
       />
 
-      <SearchInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search branch name, code, city..." className="mb-4 max-w-sm" />
+      <SearchInput aria-label="Search branches" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search branch name, code, city..." className="mb-4 max-w-sm" />
 
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No branches found" />
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading branches...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No branches found</div>
+        ) : (
+          filtered.map(b => (
+            <div key={b.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white">{b.name}</div>
+                  <div className="text-xs font-mono text-slate-400">{b.code}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{[b.city, b.province].filter(Boolean).join(', ') || b.address}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 space-y-1">
+                    {b.phone && <div className="flex items-center gap-1"><Phone size={12}/> {b.phone}</div>}
+                    {b.email && <div className="flex items-center gap-1"><Mail size={12}/> {b.email}</div>}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">{b.users_count ?? 0} users</div>
+                </div>
+                <div className="flex flex-col items-end gap-3">
+                  <Badge color={b.is_active ? 'emerald' : 'red'}>{b.is_active ? 'Active' : 'Inactive'}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Btn type="button" variant="secondary" size="sm" onClick={() => openEdit(b)} aria-label={`Edit ${b.name}`}><Edit size={13} /> Edit</Btn>
+                    <button type="button" onClick={() => toggleStatus(b)} aria-label={b.is_active ? 'Deactivate' : 'Activate'} className={`p-1.5 rounded-lg transition-colors ${b.is_active ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{b.is_active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No branches found" />
+      </div>
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit Branch' : 'Add Branch'} size="md">
         <div className="space-y-4">

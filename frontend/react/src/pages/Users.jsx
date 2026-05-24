@@ -164,11 +164,11 @@ export default function Users() {
         <StatsCard title="Cashiers"     value={roleCount('cashier')} icon={UsersIcon} color="emerald" />
       </div>
 
-      <PageHeader
-        title="Users"
-        subtitle="Manage system users and their roles"
-        action={<Btn onClick={openCreate}><Plus size={16}/> Add User</Btn>}
-      />
+          <PageHeader
+            title="Users"
+            subtitle="Manage system users and their roles"
+            action={<Btn type="button" onClick={openCreate} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"><Plus size={16}/> Add User</Btn>}
+          />
 
       <div className="flex flex-wrap gap-3 mb-4">
         <SearchInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or email..." className="max-w-xs" />
@@ -189,7 +189,46 @@ export default function Users() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No users found" />
+      {/* Mobile list */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading users...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No users found</div>
+        ) : (
+          filtered.map(u => (
+            <div key={u.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{u.name?.charAt(0)?.toUpperCase()}</div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{u.name}</div>
+                    <div className="text-xs text-slate-400">{u.email}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{u.role?.display_name} • {u.branch?.name || 'All branches'}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Btn type="button" variant="secondary" size="sm" onClick={() => openEdit(u)} aria-label={`Edit ${u.name}`}><Edit size={13}/> Edit</Btn>
+                  {u.id !== currentUser.id && (
+                    <button
+                      type="button"
+                      onClick={() => toggleStatus(u)}
+                      className={`p-1.5 rounded-lg transition-colors ${u.is_active ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                      aria-label={u.is_active ? 'Deactivate user' : 'Activate user'}
+                    >
+                      {u.is_active ? <ToggleRight size={18}/> : <ToggleLeft size={18}/>}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No users found" />
+      </div>
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit User' : 'Add User'} size="md">
         <div className="space-y-4">
