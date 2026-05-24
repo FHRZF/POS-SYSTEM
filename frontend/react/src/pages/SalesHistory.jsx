@@ -180,7 +180,43 @@ export default function SalesHistory() {
         </Select>
       </div>
 
-      <DataTable columns={columns} data={sales} loading={loading} emptyMessage="No sales in this period" />
+      {/* Mobile list */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading sales...</div>
+        ) : sales.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No sales in this period</div>
+        ) : (
+          sales.map(s => (
+            <div key={s.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-mono text-sm text-slate-700 dark:text-slate-300">{s.sale_number}</div>
+                    <div className="text-xs text-slate-400">{formatDateTime(s.sale_date)}</div>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white mt-1">{s.user?.name}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{s.items_count ?? 0} items • {s.branch?.name || ''}</div>
+                  <div className="mt-2 text-sm font-bold text-slate-900 dark:text-white">{formatCurrency(s.total_amount)}</div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge color={STATUS_COLOR[s.status] || 'slate'}>{s.status}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Btn type="button" variant="secondary" size="sm" onClick={() => openDetail(s)} aria-label={`View ${s.sale_number}`}><Eye size={13}/> View</Btn>
+                    {s.status === 'completed' && user?.hasAnyRole?.(['owner','admin']) && (
+                      <Btn type="button" variant="danger" size="sm" onClick={() => { setCancelTarget(s); setShowCancel(true) }} aria-label={`Cancel ${s.sale_number}`}><XCircle size={13}/></Btn>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={sales} loading={loading} emptyMessage="No sales in this period" />
+      </div>
 
       {/* Detail Modal */}
       <Modal open={!!detail} onClose={() => setDetail(null)} title={detail?.sale_number ? `Sale: ${detail.sale_number}` : 'Loading...'} size="lg">

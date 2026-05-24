@@ -84,8 +84,9 @@ export default function Login() {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors w-6 h-6 inline-flex items-center justify-center"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -95,7 +96,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <><Loader2 size={18} className="animate-spin" /> Signing in...</>
@@ -107,18 +108,18 @@ export default function Login() {
 
           {/* Demo credentials */}
           <div className="mt-6 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
-            <p className="text-slate-400 text-xs text-center mb-2 font-medium">Demo Accounts</p>
-            <div className="space-y-1 text-xs text-slate-500">
+            <p className="text-slate-300 text-xs text-center mb-2 font-medium">Demo Accounts</p>
+            <div className="space-y-1 text-xs text-slate-300">
               <div className="flex justify-between">
-                <span className="text-emerald-400">Owner:</span>
+                <span className="font-medium">Owner:</span>
                 <span>owner@pos.com / password123</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-400">Admin:</span>
+                <span className="font-medium">Admin:</span>
                 <span>admin@pos.com / password123</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-purple-400">Cashier:</span>
+                <span className="font-medium">Cashier:</span>
                 <span>cashier@pos.com / password123</span>
               </div>
             </div>

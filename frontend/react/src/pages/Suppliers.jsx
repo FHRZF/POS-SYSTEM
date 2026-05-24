@@ -133,7 +133,43 @@ export default function Suppliers() {
 
       <SearchInput value={search} onChange={e => setSearch(e.target.value)} placeholder="Search supplier..." className="mb-4 max-w-xs" />
 
-      <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No suppliers yet" />
+      {/* Mobile list */}
+      <div className="space-y-3 md:hidden">
+        {loading ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">Loading suppliers...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-4 text-slate-600 dark:text-slate-400">No suppliers yet</div>
+        ) : (
+          filtered.map(s => (
+            <div key={s.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-50 dark:bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-100 dark:border-amber-500/20">
+                    <Truck size={17} className="text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{s.name}</div>
+                    {s.code && <div className="text-xs text-slate-400 font-mono">{s.code}</div>}
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.contact_person || '—'}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{s.phone || s.email || '—'}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge color={s.is_active ? 'emerald' : 'red'}>{s.is_active ? 'Active' : 'Inactive'}</Badge>
+                  <div className="flex gap-2">
+                    <Btn type="button" variant="secondary" size="sm" onClick={() => openEdit(s)} aria-label={`Edit ${s.name}`}><Edit size={13}/> Edit</Btn>
+                    <Btn type="button" variant="danger" size="sm" onClick={() => { setDeleting(s); setShowConfirm(true) }} aria-label={`Delete ${s.name}`}><Trash2 size={13}/></Btn>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable columns={columns} data={filtered} loading={loading} emptyMessage="No suppliers yet" />
+      </div>
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit Supplier' : 'Add Supplier'} size="md">
         <div className="space-y-4">
